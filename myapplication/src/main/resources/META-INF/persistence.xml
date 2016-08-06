@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence>
+       <persistence-unit name="licht">
+        <jta-data-source>java:jboss/datasources/ExampleDS</jta-data-source>
+        <properties>
+            <property name="hibernate.hbm2ddl.auto" value="validate" />
+            <property name="hibernate.show_sql" value="true" />
+            <property name="hibernate.connection.autocommit" value="true" />
+            <property name="hibernate.transaction.auto_close_session" value="true" />
+        </properties> 
+    </persistence-unit>
+</persistence>   
