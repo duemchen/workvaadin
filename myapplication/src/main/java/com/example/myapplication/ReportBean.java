@@ -5,22 +5,22 @@ import java.io.Serializable;
 import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
 
+import org.apache.log4j.Logger;
+import org.json.JSONObject;
+
 @ApplicationScoped
 @Startup
 
 public class ReportBean implements Serializable {
-	Thread thread;
+	private static Logger logMess = Logger.getLogger("MessLogger");
 
 	public ReportBean() {
-		runReports();
+
 	}
 
-	public void runReports() {
-		System.out.println("runReports");
-		ReportTask reportTask = new ReportTask();
-		thread = new Thread(reportTask);
-		thread.start();
-
+	public void logMesspunkt(JSONObject json) {
+		String s = json.toString();
+		logMess.info(s);
 	}
 
 }

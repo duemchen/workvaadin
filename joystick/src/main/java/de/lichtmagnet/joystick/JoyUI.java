@@ -1,11 +1,11 @@
-package com.example.myapplication;
+package de.lichtmagnet.joystick;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-import javax.ejb.EJB;
 import javax.inject.Inject;
-import javax.servlet.annotation.WebServlet;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -14,14 +14,17 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.vaadin.addon.touchkit.server.TouchKitServlet;
 import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
+import com.vaadin.annotations.Title;
 import com.vaadin.annotations.VaadinServletConfiguration;
+import com.vaadin.annotations.Viewport;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.cdi.CDIUI;
-import com.vaadin.cdi.server.VaadinCDIServlet;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
@@ -39,60 +42,44 @@ import com.vaadin.ui.VerticalLayout;
 @Push
 @CDIUI("")
 @Theme("mytheme")
-@Widgetset("com.example.myapplication.MyAppWidgetset")
-public class MyUI extends UI implements CompassCallback {
-	private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MyUI.class);
-
-	@EJB
-	private EJBSession session;
-
+@Widgetset("de.lichtmagnet.joystick.MyAppWidgetset")
+@Title("Joystick-4-Mirror")
+@Viewport("user-scalable=yes,initial-scale=1.0")
+public class JoyUI extends UI implements CompassCallback {
+	private final static SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 	@Inject
 	private CompassBean cb;
-
-	private TextField compass = null;
 	private MqttClient client;
-	// CompassConnectorThread cct;
+	private TextField compass;
+	private Button links;
 
 	@Override
 	protected void init(VaadinRequest vaadinRequest) {
-
 		final VerticalLayout layout = new VerticalLayout();
 		compass = new TextField();
+		compass.setCaption("Lage");
 		compass.setWidth(500, Unit.PIXELS);
-		// Button button = new Button("Clicke Me");
-		// button.addClickListener(e -> {
-		// layout.addComponent(new Label("Thanks " + name.getValue() + ", it
-		// works!"));
-		// LDZustand o = new LDZustand();
-		// o.setValue(name.getValue());
-		// session.saveOrUpdate(o);
-		// layout.addComponent(new Label(session.findAll() + ""));
-		// List<LDZustand> list = session.findAll();
-		// for (LDZustand z : list) {
-		// System.out.println(z);
-		// }
-		//
-		// });
-
 		layout.addComponents(compass);
-		// Joystick
 
-		Button links = new Button("Links");
+		links = new Button("sss");
+		links.setVisible(true);
+		links.setCaption("ddd");
+
 		Button rechts = new Button("rechts");
 		Button hoch = new Button("hoch");
 		Button runter = new Button("runter");
+		Button speichern = new Button("Speichern");
 		layout.addComponent(hoch);
 		final HorizontalLayout hori = new HorizontalLayout();
 		hori.setMargin(true);
 		hori.setSpacing(true);
-		hori.addComponents(links, rechts);
+		hori.addComponent((Component) links);
+		hori.addComponent(rechts);
 		layout.addComponents(hori, runter);
+		hori.addComponent(speichern);
 		layout.setMargin(true);
 		layout.setSpacing(true);
 		setContent(layout);
-		// cct = new CompassConnectorThread();
-		// cct.register((CompassCallback) this);
-		// cct.start();
 		cb.register((CompassCallback) this);
 
 		links.addClickListener(e -> {
@@ -107,25 +94,8 @@ public class MyUI extends UI implements CompassCallback {
 		runter.addClickListener(e -> {
 			sendCommand(3);
 		});
-
-	}
-
-	@WebServlet(urlPatterns = "/*", name = "MyUIServlet", asyncSupported = true)
-	@VaadinServletConfiguration(ui = MyUI.class, productionMode = false)
-	public static class MyUIServlet extends VaadinCDIServlet {
-	}
-
-	@Override
-	public void setPosition(String s) {
-		// System.out.println(s);
-
-		access(new Runnable() {
-			@Override
-			public void run() {
-
-				compass.setValue(s + System.currentTimeMillis());
-				// ));
-			}
+		speichern.addClickListener(e -> {
+			doSpeichern();
 		});
 
 	}
@@ -153,30 +123,49 @@ public class MyUI extends UI implements CompassCallback {
 				// client.publish("simago/joy", message);
 
 			} catch (MqttException ex) {
-				log.error(ex);
+				System.out.println(ex);
 
 			}
 
 		} catch (JSONException ex) {
-			log.error(ex);
+			System.out.println(ex);
 		}
 
 	}
 
-	@Override
-	public void close() {
-		// cb.unregister();
-
-		super.close();
-		System.out.println("Application closing");
+	/**
+	 * compass daten mit target versehen und speichern
+	 * {"position":{"roll":2,"dir":0,"pitch":-26},"target:":1,"time":"02.04.2016 12:11:00"}
+	 */
+	private void doSpeichern() {
+		JSONObject position = new JSONObject(compass.getValue());
+		JSONObject mess = new JSONObject();
+		mess.put("position", position);
+		mess.put("target", 2);
+		mess.put("time", sdf.format(new Date()));
+		System.out.println("speichere: " + mess);
+		String s = mess.toString();
+		// report.logMesspunkt(mess);
 	}
 
-}
+	@Override
+	public void setPosition(String s) {
+		// System.out.println(s);
 
-/*
- * Speichern in Datenbank oder logfile
- * {"position":{"roll":2,"dir":0,"pitch":-26},"target:":1,"time":
- * 
- * "02.04.2016 12:11:00"} auflisten deaktivierne aktivieren löschen darstellen
- * in einer kreisbahn richtung Höhe
- */
+		access(new Runnable() {
+			@Override
+			public void run() {
+
+				compass.setValue(s);
+				// ));
+			}
+		});
+
+	}
+
+	// @WebServlet(urlPatterns = "/*", name = "MyUIServlet", asyncSupported =
+	// true)
+	@VaadinServletConfiguration(ui = JoyUI.class, productionMode = false)
+	public static class MyUIServlet extends TouchKitServlet {
+	}
+}
