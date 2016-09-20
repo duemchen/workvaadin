@@ -1,4 +1,4 @@
-package de.lichtmagnet.joystick;
+package de.lichtmagnet.compass;
 
 import java.io.Serializable;
 

@@ -1,4 +1,4 @@
-package de.lichtmagnet.joystick;
+package de.lichtmagnet.compass;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -20,7 +20,7 @@ public class CompassReader implements MqttCallback {
 
 	void register(CompassCallback x) {
 		callback = x;
-		callback.setPosition("registriert.");
+		callback.setPosition("info", "registriert.");
 
 	}
 
@@ -31,12 +31,15 @@ public class CompassReader implements MqttCallback {
 	}
 
 	@Override
-	public void messageArrived(String string, MqttMessage mm) throws Exception {
+	public void messageArrived(String path, MqttMessage mm) throws Exception {
 		if (mm == null) {
 			System.out.println("cMessage NULL");
 		} else {
 			byte[] b = mm.getPayload();
-			callback.setPosition(new String(b));
+			if (path.contains("cam")) {
+				callback.setPicure(mm.getPayload());
+			} else
+				callback.setPosition(path, new String(b));
 		}
 		// System.out.println(string + " " + mm);
 
@@ -60,8 +63,10 @@ public class CompassReader implements MqttCallback {
 			client.connect();
 			client.setCallback(this);
 			// client.subscribe("simago/compass/#");
-			// client.subscribe("simago/compass");
+			// client.subscribe("simago/compass");			   
+			client.subscribe("simago/cam");
 			client.subscribe("simago/compass/74-DA-38-3E-E8-3C");
+
 			connectionOK = true;
 		} catch (MqttException e) {
 			e.printStackTrace();

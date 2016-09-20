@@ -1,10 +1,14 @@
 package de.lichtmagnet.joystick;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import javax.imageio.ImageIO;
 import javax.inject.Inject;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -19,16 +23,18 @@ import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.VaadinServletConfiguration;
-import com.vaadin.annotations.Viewport;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.cdi.CDIUI;
+import com.vaadin.server.StreamResource;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Image;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
+
+import de.horatio.common.HoraFile;
+import de.lichtmagnet.compass.CompassBean;
+import de.lichtmagnet.compass.CompassCallback;
 
 /**
  * This UI is the application entry point. A UI may either represent a browser
@@ -41,63 +47,24 @@ import com.vaadin.ui.VerticalLayout;
  */
 @Push
 @CDIUI("")
-@Theme("mytheme")
+@Theme("touchkit")
 @Widgetset("de.lichtmagnet.joystick.MyAppWidgetset")
-@Title("Joystick-4-Mirror")
-@Viewport("user-scalable=yes,initial-scale=1.0")
+@Title("Spiegel einstellen")
+// nichtinvolksz@Viewport("user-scalable=yes,initial-scale=1.0")
 public class JoyUI extends UI implements CompassCallback {
 	private final static SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 	@Inject
 	private CompassBean cb;
 	private MqttClient client;
 	private TextField compass;
+
 	private Button links;
+	private Image img;
 
 	@Override
 	protected void init(VaadinRequest vaadinRequest) {
-		final VerticalLayout layout = new VerticalLayout();
-		compass = new TextField();
-		compass.setCaption("Lage");
-		compass.setWidth(500, Unit.PIXELS);
-		layout.addComponents(compass);
-
-		links = new Button("sss");
-		links.setVisible(true);
-		links.setCaption("ddd");
-
-		Button rechts = new Button("rechts");
-		Button hoch = new Button("hoch");
-		Button runter = new Button("runter");
-		Button speichern = new Button("Speichern");
-		layout.addComponent(hoch);
-		final HorizontalLayout hori = new HorizontalLayout();
-		hori.setMargin(true);
-		hori.setSpacing(true);
-		hori.addComponent((Component) links);
-		hori.addComponent(rechts);
-		layout.addComponents(hori, runter);
-		hori.addComponent(speichern);
-		layout.setMargin(true);
-		layout.setSpacing(true);
-		setContent(layout);
-		cb.register((CompassCallback) this);
-
-		links.addClickListener(e -> {
-			sendCommand(1);
-		});
-		rechts.addClickListener(e -> {
-			sendCommand(2);
-		});
-		hoch.addClickListener(e -> {
-			sendCommand(0);
-		});
-		runter.addClickListener(e -> {
-			sendCommand(3);
-		});
-		speichern.addClickListener(e -> {
-			doSpeichern();
-		});
-
+		final JoyForm z = new JoyForm();
+		setContent(z);
 	}
 
 	void sendCommand(int cmd) {
@@ -144,12 +111,19 @@ public class JoyUI extends UI implements CompassCallback {
 		mess.put("target", 2);
 		mess.put("time", sdf.format(new Date()));
 		System.out.println("speichere: " + mess);
+
 		String s = mess.toString();
+		// "simago/compass/abc"
+		String p = compass.getCaption();
+		int i = p.lastIndexOf("/");
+		p = p.substring(i + 1);
+		p = "D:/Programme/MQTTRegler/" + p + ".txt";
+		HoraFile.fileAppend(p, s);
 		// report.logMesspunkt(mess);
 	}
 
 	@Override
-	public void setPosition(String s) {
+	public void setPosition(String path, String s) {
 		// System.out.println(s);
 
 		access(new Runnable() {
@@ -157,6 +131,7 @@ public class JoyUI extends UI implements CompassCallback {
 			public void run() {
 
 				compass.setValue(s);
+				compass.setCaption(path);
 				// ));
 			}
 		});
@@ -165,7 +140,45 @@ public class JoyUI extends UI implements CompassCallback {
 
 	// @WebServlet(urlPatterns = "/*", name = "MyUIServlet", asyncSupported =
 	// true)
-	@VaadinServletConfiguration(ui = JoyUI.class, productionMode = false)
+	@VaadinServletConfiguration(ui = JoyUI.class, productionMode = true)
 	public static class MyUIServlet extends TouchKitServlet {
+	}
+
+	@Override
+	public void setPicure(byte[] payload) {
+		System.out.println("Bild: " + payload.length);
+		try {
+
+			InputStream in = new ByteArrayInputStream(payload);
+			BufferedImage bImageFromConvert = ImageIO.read(in);
+			//	bImageFromConvert = (BufferedImage) bImageFromConvert.getScaledInstance(200, -1, 0);
+
+			//ImageIO.write(bImageFromConvert, "jpg", new File("d:/new-darksouls.jpg"));
+
+			access(new Runnable() {
+				@Override
+				public void run() {
+
+					StreamResource.StreamSource imagesource = new MyImageSource(bImageFromConvert);
+
+					// Create a resource that uses the stream source and give it a name.
+					// The constructor will automatically register the resource in
+					// the application.
+					StreamResource resource = new StreamResource(imagesource, System.currentTimeMillis() + ".jpg");
+
+					// Create an image component that gets its contents
+					// from the resource.
+					img.setSource(resource);
+					img.setAlternateText("????");
+					img.setCaption(sdf.format(new Date()));
+
+					// ));
+				}
+			});
+
+		} catch (Exception ex) {
+			System.out.println(ex);
+		}
+
 	}
 }

@@ -1,4 +1,4 @@
-package de.lichtmagnet.joystick;
+package de.lichtmagnet.compass;
 
 public class CompassConnectorThread extends Thread implements CompassCallback {
 	CompassCallback callback = null;
@@ -63,11 +63,17 @@ public class CompassConnectorThread extends Thread implements CompassCallback {
 	}
 
 	@Override
-	public void setPosition(String s) {
+	public void setPosition(String p, String s) {
 		if (callback != null)
-			callback.setPosition(s);
+			callback.setPosition(p, s);
 		else
 			System.out.println("setPosition: Keiner registriert.");
+	}
+
+	@Override
+	public void setPicure(byte[] payload) {
+		callback.setPicure(payload);
+
 	}
 
 }
