@@ -22,7 +22,7 @@ public class StromForm extends StromDesign {
 		conf.getxAxis().setType(AxisType.DATETIME);
 		DataSeries leistung = zaehler.getTagesverlauf(null);
 		conf.addSeries(leistung);
-		button.setCaption("BUBU");
+		setSizeFull();
 
 	}
 

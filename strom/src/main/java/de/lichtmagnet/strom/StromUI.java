@@ -2,10 +2,11 @@ package de.lichtmagnet.strom;
 
 import javax.servlet.annotation.WebServlet;
 
+import com.vaadin.addon.touchkit.server.TouchKitServlet;
 import com.vaadin.annotations.Theme;
+import com.vaadin.annotations.Title;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.server.VaadinRequest;
-import com.vaadin.server.VaadinServlet;
 import com.vaadin.ui.UI;
 
 /**
@@ -15,7 +16,9 @@ import com.vaadin.ui.UI;
  * The UI is initialized using {@link #init(VaadinRequest)}. This method is intended to be 
  * overridden to add component to the user interface and initialize non-component functionality.
  */
+//@Widgetset("de.lichtmagnet.strom.AppWidgetset")
 @Theme("mytheme")
+@Title("Stromzähler")
 public class StromUI extends UI {
 
 	@Override
@@ -35,13 +38,15 @@ public class StromUI extends UI {
 		//		layout.setSpacing(true);
 		//		setContent(layout);
 		final StromForm sf = new StromForm();
+		sf.setSizeFull();
 		setContent(sf);
+		setSizeFull();
 
 	}
 
 	@WebServlet(urlPatterns = "/*", name = "MyUIServlet", asyncSupported = true)
 	@VaadinServletConfiguration(ui = StromUI.class, productionMode = false)
-	public static class MyUIServlet extends VaadinServlet {
+	public static class MyUIServlet extends TouchKitServlet {
 
 		/**
 		 * 

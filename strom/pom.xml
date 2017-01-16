@@ -83,14 +83,8 @@
 		<dependency>
 			<groupId>com.vaadin.addon</groupId>
 			<artifactId>vaadin-touchkit-agpl</artifactId>
-			<version>LATEST</version>
+			<version>4.1.0</version>
 		</dependency>
-		<dependency>
-			<groupId>com.vaadin</groupId>
-			<artifactId>vaadin-archetype-touchkit</artifactId>
-			<version>4.0.0</version>
-		</dependency>
-
 
 	</dependencies>
 

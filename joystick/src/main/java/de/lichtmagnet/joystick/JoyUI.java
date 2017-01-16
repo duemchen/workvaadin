@@ -23,7 +23,6 @@ import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.VaadinServletConfiguration;
-import com.vaadin.annotations.Widgetset;
 import com.vaadin.cdi.CDIUI;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.VaadinRequest;
@@ -48,10 +47,15 @@ import de.lichtmagnet.compass.CompassCallback;
 @Push
 @CDIUI("")
 @Theme("touchkit")
-@Widgetset("de.lichtmagnet.joystick.MyAppWidgetset")
-@Title("Spiegel einstellen")
+//@Widgetset("de.lichtmagnet.joystick.MyAppWidgetset")
+
+@Title("Joystick")
 // nichtinvolksz@Viewport("user-scalable=yes,initial-scale=1.0")
 public class JoyUI extends UI implements CompassCallback {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3170991123961242216L;
 	private final static SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 	@Inject
 	private CompassBean cb;
@@ -65,6 +69,7 @@ public class JoyUI extends UI implements CompassCallback {
 	protected void init(VaadinRequest vaadinRequest) {
 		final JoyForm z = new JoyForm();
 		setContent(z);
+		setSizeFull();
 	}
 
 	void sendCommand(int cmd) {

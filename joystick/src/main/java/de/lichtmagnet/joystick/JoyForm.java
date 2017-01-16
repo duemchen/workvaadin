@@ -6,5 +6,11 @@ public class JoyForm extends JoyDesign {
 		left.setCaption("links");
 		right.setCaption("rechts");
 		down.setCaption("runter");
+		top.addClickListener(e -> {
+			System.out.println("x");
+			top.setCaption("XXX");
+			System.out.println("xxx");
+			;
+		});
 	}
 }
